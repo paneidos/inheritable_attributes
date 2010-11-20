@@ -5,7 +5,7 @@ module InheritableAttributes
       raise ArgumentError.new("must specify :from") unless options[:from]
       parent = options[:from]
       parent_attribute = options[:as] || attribute
-      aliased_attribute, punctuation = target.to_s.sub(/([?!=])$/, ''), $1
+      aliased_attribute, punctuation = attribute.to_s.sub(/([?!=])$/, ''), $1
 
       if instance_methods.include? "#{attribute}"
         define_method "#{aliased_attribute}_with_inheritance#{punctuation}" do
