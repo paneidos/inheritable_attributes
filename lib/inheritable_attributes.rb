@@ -10,7 +10,7 @@ module InheritableAttributes
       if instance_methods.include? "#{attribute}"
         define_method "#{aliased_attribute}_with_inheritance#{punctuation}" do
           val = send("#{aliased_attribute}_without_inheritance#{punctuation}")
-          if val.blank? && !parent.nil?
+          if val.blank? && !send(parent).nil?
             send(parent).send(parent_attribute)
           else
             val
@@ -19,7 +19,7 @@ module InheritableAttributes
         alias_method_chain attribute, :inheritance
       else
         define_method "#{attribute}" do
-          if !parent.nil?
+          if !send(parent).nil?
             send(parent).send(parent_attribute)
           else
             nil
