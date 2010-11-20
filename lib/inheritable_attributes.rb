@@ -1,26 +1,41 @@
 # InheritableAttributes
 module InheritableAttributes
   module ClassMethods
-    def inherit_attributes(attributes, options = {})
+    def inherit_attribute(attribute, options = {})
       raise ArgumentError.new("must specify :from") unless options[:from]
       parent = options[:from]
-      [attributes].flatten.each do |attribute|
-        parent_attribute = options[:as] || attribute
-        fn = <<-EOV
-          def #{attribute}_with_inheritance
-            val = #{attribute}_without_inheritance
-            
-            (val.blank? && ! parent.nil?) ? #{parent}.#{parent_attribute} : val
+      parent_attribute = options[:as] || attribute
+
+
+      if instance_methods.include? "#{attribute}"
+        define_method "#{attribute}_with_inheritance" do
+          val = send("#{attribute}_without_inheritance")
+          if val.nil? && !parent.nil?
+            send(parent).send(parent_attribute)
+          else
+            val
           end
-          alias_method_chain :#{attribute}, :inheritance
-        EOV
-        class_eval fn
+        end
+        alias_method_chain attribute, :inheritance
+      else
+        define_method "#{attribute}" do
+          if !parent.nil?
+            send(parent).send(parent_attribute)
+          else
+            nil
+          end
+        end
       end
     end
-    
-    alias inherit_attribute inherit_attributes
+
+    def inherit_attributes(attributes, options = {})
+      options[:as] = nil
+      [attributes].flatten.each do |attribute|
+        inherit_attribute attribute,options
+      end
+    end
   end
-  
+
   def self.included(receiver)
     receiver.extend         ClassMethods
   end
